@@ -153,6 +153,7 @@ Structure.prototype = {
 
     },
 
+    /** Returns a bitset representing active bonds */
     getBondSet: function( selection ){
 
         if( Debug ) Log.time( "Structure.getBondSet" );
@@ -248,6 +249,7 @@ Structure.prototype = {
 
     },
 
+    /** Return a bitset representing active atoms */
     getAtomSet: function( selection ){
 
         if( Debug ) Log.time( "Structure.getAtomSet" );
@@ -647,6 +649,10 @@ Structure.prototype = {
 
     },
 
+    /** Returns a JS object (bondData), where bondData.position1 is a typed
+	array of coordinates of one end of each bond. position2, color[1|2], 
+	radius[1|2] pickingColor[1|2] are analogous arrays
+     */
     getBondData: function( params ){
 
         var p = Object.assign( {}, params );

@@ -1209,4 +1209,10 @@ NGL.ExampleRegistry.addDict( {
 
     },
 
+    "pdbligand": function( stage ) {
+	
+	stage.loadFile( "data://1ajx_ligand.pdb" );
+
+    }
+
 } );

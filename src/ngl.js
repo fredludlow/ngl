@@ -10,6 +10,14 @@ if( !window.Promise ){
     window.Promise = _Promise;
 }
 
+import THREE from "../lib/three.js";
+// RFL Hack to fix examples.js
+( function( global ) {
+
+    global.THREE = THREE;
+
+})( typeof window === 'undefined' ? this : window );
+
 
 //////////////
 // Polyfills
@@ -468,6 +476,7 @@ import Stage from "./stage/stage.js";
 import TrajectoryPlayer from "./trajectory/trajectory-player.js";
 
 import { throttle, download, getQuery } from "./utils.js";
+import Bitset from "./utils/bitset.js";
 import Queue from "./utils/queue.js";
 
 //
@@ -561,5 +570,8 @@ export {
 
     BufferRepresentation,
     SphereBuffer,
-    CylinderBuffer
+    CylinderBuffer,
+    LineRepresentation,
+
+    Bitset
 };
