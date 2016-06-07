@@ -505,6 +505,7 @@ import UnitcellRepresentation from "./representation/unitcell-representation";
 import BufferRepresentation from "./representation/buffer-representation";
 import SphereBuffer from "./buffer/sphere-buffer.js";
 import CylinderBuffer from "./buffer/cylinder-buffer.js";
+import LineBuffer from "./buffer/line-buffer.js";
 
 //
 
@@ -571,6 +572,7 @@ export {
     BufferRepresentation,
     SphereBuffer,
     CylinderBuffer,
+    LineBuffer,
     LineRepresentation,
 
     Bitset

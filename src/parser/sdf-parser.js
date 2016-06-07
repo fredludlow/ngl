@@ -12,6 +12,8 @@ function SdfParser( streamer, params ){
 
     StructureParser.call( this, streamer, params );
 
+    this.dontAutoBond = true;
+
 }
 
 SdfParser.prototype = Object.assign( Object.create(

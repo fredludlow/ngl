@@ -12,6 +12,8 @@ function Mol2Parser( streamer, params ){
 
     StructureParser.call( this, streamer, params );
 
+    this.dontAutoBond = true;
+
 }
 
 Mol2Parser.prototype = Object.assign( Object.create(
