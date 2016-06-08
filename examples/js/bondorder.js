@@ -169,7 +169,10 @@ BondBuilder.prototype = {
     var color1 = this.bufferData.color1 = new Float32Array( ndbl * 3 );
     var color2 = this.bufferData.color2 = new Float32Array( ndbl * 3 );
 
-    var colorMaker = NGL.ColorMakerRegistry.getScheme( {structure: this.structure} );
+    var colorMaker = NGL.ColorMakerRegistry.getScheme(
+      { scheme:"element",
+        structure: this.structure}
+    );
 
     var bp = this.structure.getBondProxy();
     var ap1 = this.structure.getAtomProxy();
