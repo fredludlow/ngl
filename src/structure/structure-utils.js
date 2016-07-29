@@ -583,6 +583,28 @@ function calculateResidueBonds( r ){
     var atomIndices2 = [];
     var bondOrders = [];
 
+    // We might have some bonding information (e.g. from PDB CONECT records) 
+    // already present on the structure object.
+    // These should be copied across to the residue.
+    var sb = {}; // Structure-bonds: Handy lookup for use below
+                 // { ai1: { ai2: bondOrder, ai2: bondOrder }, ... }
+    var ai1, ai2;
+
+    structure.eachBond( function( bp ) {
+
+        ai1 = bp.atomIndex1;
+        ai2 = bp.atomIndex2;
+
+        if( ai1 >= offset && ai1 < end && ai2 >= offset && ai2 < end ) {
+          sb[ai1] = sb[ai1] || {};
+          sb[ai1][ai2] = bp.bondOrder;
+
+          sb[ai2] = sb[ai2] || {};
+          sb[ai2][ai1] = bp.bondOrder;
+        }
+
+    });
+    
     if( count > 50 ){
 
         var kdtree = new Kdtree( r, true );
@@ -601,7 +623,7 @@ function calculateResidueBonds( r ){
                     if( a1.connectedTo( a2 ) ){
                         atomIndices1.push( a1.index - offset );
                         atomIndices2.push( a2.index - offset );
-                        bondOrders.push( 1 );
+                        bondOrders.push( sb[a1.index] && sb[a1.index][a2.index] || 1 );
                     }
                 }
             }
@@ -616,17 +638,20 @@ function calculateResidueBonds( r ){
                 if( a1.connectedTo( a2 ) ){
                     atomIndices1.push( i - offset );
                     atomIndices2.push( j - offset );
-                    bondOrders.push( 1 );
+                    bondOrders.push( sb[a1.index] && sb[a1.index][a2.index] || 1 );
                 }
             }
         }
 
     }
 
+    // Apply explicit bonding data (e.g. picked up from PDB CONECT records)
+
+
     return {
         atomIndices1: atomIndices1,
         atomIndices2: atomIndices2,
-        bondsOrders: bondOrders
+        bondOrders: bondOrders
     };
 
 }
@@ -659,12 +684,13 @@ function calculateBondsWithin( structure, onlyAddRung ){
             var bonds = r.getBonds();
             var atomIndices1 = bonds.atomIndices1;
             var atomIndices2 = bonds.atomIndices2;
+            var bondOrders = bonds.bondOrders;
             var nn = atomIndices1.length;
 
             for( var i = 0; i < nn; ++i ){
                 a1.index = atomIndices1[ i ] + offset;
                 a2.index = atomIndices2[ i ] + offset;
-                bondStore.addBond( a1, a2, 1 );  // assume single bond
+                bondStore.addBond( a1, a2, bondOrders[i] );  // Take bonding from bondOrders..?
             }
 
         }

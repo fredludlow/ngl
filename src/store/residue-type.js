@@ -415,7 +415,7 @@ ResidueType.prototype = {
             ai2 = atomIndices2[i];
 
             // Not required for single bonds
-            if (this.bonds.bondOrders[i] <= 1) continue;
+            if ( bondOrders[i] <= 1 ) continue;
 
             // Check if atom is terminal?
             if ( bondGraph[ai1].length === 1 ) {

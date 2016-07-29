@@ -81,7 +81,13 @@ BondProxy.prototype = {
         var typeAtomIndex1 = ap1.index - ap1.residueAtomOffset;
         var typeAtomIndex2 = ap2.index - ap2.residueAtomOffset;
         var residueType = ap1.residueType;
-        return residueType.getBondReferenceAtomIndex( typeAtomIndex1, typeAtomIndex2 ) + ap1.residueAtomOffset;
+        var ix = residueType.getBondReferenceAtomIndex( typeAtomIndex1, typeAtomIndex2 );
+        if (ix === undefined) {
+            // Check for bond listed the other way round
+            // as can't rely on a2.index > a1.index in structure (but can in ResidueType)
+            ix = residueType.getBondReferenceAtomIndex( typeAtomIndex2, typeAtomIndex1 );
+        }
+        if( ix !== undefined ) { return ix + ap1.residueAtomOffset; }
     },
 
     /**
@@ -100,7 +106,7 @@ BondProxy.prototype = {
 
         ap1.index = this.atomIndex1;
         ap2.index = this.atomIndex2;
-        var ai3 = this.getReferenceAtomIndex( ap1, ap2 );
+        var ai3 = this.getReferenceAtomIndex();
 
         v12.subVectors( ap1, ap2 ).normalize();
         if( ai3 !== undefined ){
