@@ -106,7 +106,7 @@ MolecularSurfaceRepresentation.prototype = Object.assign( Object.create(
         this.filterSele = defaults( p.filterSele, "" );
         this.volume = defaults( p.volume, undefined );
         this.useWorker = defaults( p.useWorker, true );
-        this.contour = defaults( p.contour, true );
+        this.contour = defaults( p.contour, false );
 
         StructureRepresentation.prototype.init.call( this, params );
 
@@ -238,7 +238,7 @@ MolecularSurfaceRepresentation.prototype = Object.assign( Object.create(
         }
 
         if( what.color ){
-            surfaceData.color = data.info.surface.getColor( this.getColorParams() );
+            surfaceData.color = surfaceData.color2 = data.info.surface.getColor( this.getColorParams() );
         }
 
         if( what.index ){

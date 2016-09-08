@@ -1366,69 +1366,16 @@ NGL.ExampleRegistry.addDict( {
 
     contour: function( stage ) {
 
-        stage.loadFile( "rcsb://2vta.mmtf" ).then( function( o ){
+        stage.loadFile( "data://4umt_47w.sdf" ).then( function ( o ) {
+            o.addRepresentation( "licorice", { multipleBond: "symmetric" } );
+            o.addRepresentation( "surface", { useWorker: false, wireframe: true,
+                                              linewidth: 1, contour: true, 
+                                              smooth: 0, colorValue: "#0f0" } );
+            stage.centerView();
 
-            o.addRepresentation( "line", { sele: "protein",
-                                           color: "grey",
-                                           colorScheme: "element" } );
-
-            var psurf = o.addRepresentation( "surface", { useWorker: false,
-                                              /*sele : "protein",*/
-                                              sele : "@433,440,558,563,564,565,566,567,569,571,574,234,1083,1086,1091,1092,1093,139,140,240,241,244,250,254,551,568,570,572,573,2260,143,144,153,231,232,233,237,238,239,242,243,245,135,136,138,2349,141,142,431,432,434,435,436,575,576,577,578,579,580,583,586,599,600,601,2282,1082,1085,584,585,594,595,596,597,598,1008,1011,1012,1013,1014,2256,2257,2258,2259,2261,2262,2263,2264,2307,84,86,154,157,230,587,588,589,590,591,592,593,80,81,82,83,85,2269,2309,602",
-                                              contour: true,
-                                              color: "grey" } );
-
-            var ligand = o.addRepresentation( "licorice", { sele: "[LZ1]",
-                                               color: "#0f0" } );
-
-            o.addRepresentation( "surface", { useWorker: false,
-                                              sele: "[LZ1]",
-                                              contour: true,
-                                              color: "#0f0" } );
-
-
-            return; 
-            var radius = 8;
-            var s = o.structure;
-            var spatialHash = new NGL.SpatialHash( s.atomStore, s.boundingBox );
             
-            function getCenterArray(){
-                var position = new NGL.Vector3();
-                var target = stage.viewer.controls.target;
-                var group = stage.viewer.rotationGroup.position;
-                position.copy( group ).negate().add( target );
-                return position;
-            }
+        } );
 
-            function getSele( pos ){
-                var within = spatialHash.within( pos.x, pos.y, pos.z, radius );
-                return within.length ? "@" + within.join( "," ) : "NONE";
-            }
-
-            var sphereBuffer = new NGL.SphereBuffer(
-                new Float32Array( getCenterArray().toArray() ),
-                new Float32Array( [ 1, 0.5, 1 ] ),
-                new Float32Array( [ radius ] )
-            );
-            o.addBufferRepresentation( sphereBuffer, { opacity: 0.5 } );
-
-            var prevSele = "";
-            var prevPos = new NGL.Vector3( Infinity, Infinity, Infinity );
-            stage.viewer.controls.addEventListener(
-                'change', function(){
-                    var pos = getCenterArray();
-                    if( pos.distanceTo( prevPos ) > 0.1 ){
-                        sphereBuffer.setAttributes( { "position": pos.toArray() } );
-                        prevPos = pos;
-                        var sele = getSele( pos );
-                        if( sele !== prevSele ){
-                            psurf.setSelection( sele );
-                            prevSele = sele;
-                        }
-                    }
-                }
-            );
-        })
     },
 
     "test": function( stage ){
