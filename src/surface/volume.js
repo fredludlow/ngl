@@ -21,14 +21,20 @@ function VolumeSurface( data, nx, ny, nz, atomindex ){
 
     var mc = new MarchingCubes( data, nx, ny, nz, atomindex );
 
-    function getSurface( isolevel, smooth, box, matrix ){
-        var sd = mc.triangulate( isolevel, smooth, box );
-        if( smooth ){
+    function getSurface( isolevel, smooth, box, matrix, contour ){
+        var sd = mc.triangulate( isolevel, smooth, box, contour );
+        if( !contour && smooth ){
             laplacianSmooth( sd.position, sd.index, smooth, true );
             sd.normal = computeVertexNormals( sd.position, sd.index );
         }
         if( matrix ){
-            applyMatrix4toVector3array( matrix, sd.position );
+            if( sd.position ) {
+                applyMatrix4toVector3array( matrix, sd.position );
+            }
+            if( sd.from ) {
+                applyMatrix4toVector3array( matrix, sd.from );
+                applyMatrix4toVector3array( matrix, sd.to );
+            }
             if( sd.normal ){
                 var normalMatrix = m3new();
                 m3makeNormal( normalMatrix, matrix );

@@ -303,6 +303,24 @@ function getTriTable(){
     ] );
 }
 
+// array[edge1][edge1] indicates whether to draw. 
+function getAllowedContours() { return [
+
+    [ 0, 1, 1, 1, 1, 0, 0, 0, 1, 1, 0, 0 ], // 1 2 3 4 8 9
+    [ 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 1, 0 ], // 0 2 3 5 9 10
+    [ 1, 1, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1 ], // 0 1 3 6 10 11
+    [ 1, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1 ], // 0 1 2 7 8 11
+    [ 1, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0 ], // 0 5 6 7 8 9
+    [ 0, 1, 0, 0, 1, 0, 1, 1, 0, 1, 1, 0 ], // And rotate it
+    [ 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1 ],
+    [ 0, 0, 0, 1, 1, 1, 1, 0, 1, 0, 0, 1 ],
+    [ 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0, 1 ], // 0 3 4 7 9 11
+    [ 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1, 0 ], // And rotate some more
+    [ 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 0, 1 ],
+    [ 0, 0, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0 ]
+    
+]}
+
 
 function MarchingCubes( field, nx, ny, nz, atomindex ){
 
@@ -314,6 +332,7 @@ function MarchingCubes( field, nx, ny, nz, atomindex ){
 
     var isolevel = 0;
     var noNormals = false;
+    var contour = false;
 
     var n = nx * ny * nz;
 
@@ -331,16 +350,20 @@ function MarchingCubes( field, nx, ny, nz, atomindex ){
     var indexArray = [];
     var atomindexArray = [];
 
+    var fromArray = [];
+    var toArray = [];
+
     var edgeTable = getEdgeTable();
     var triTable = getTriTable();
-
+    var allowedContours = getAllowedContours();
 
     //
 
-    this.triangulate = function( _isolevel, _noNormals, _box ){
+    this.triangulate = function( _isolevel, _noNormals, _box, _contour ){
 
         isolevel = _isolevel;
         noNormals = _noNormals;
+        contour = _contour;
 
         if( !noNormals && !normalCache ){
             normalCache = new Float32Array( n * 3 );
@@ -368,19 +391,31 @@ function MarchingCubes( field, nx, ny, nz, atomindex ){
 
         }
 
-        positionArray.length = count * 3;
-        if( !noNormals ) normalArray.length = count * 3;
-        indexArray.length = icount;
-        if( atomindex ) atomindexArray.length = count;
+        if( contour ) {
 
-        var TypedArray = positionArray.length / 3 > 65535 ? Uint32Array : Uint16Array;
-        return {
-            position: new Float32Array( positionArray ),
-            normal: noNormals ? undefined : new Float32Array( normalArray ),
-            index: new TypedArray( indexArray ),
-            atomindex: atomindex ? new Int32Array( atomindexArray ) : undefined,
-        };
+            return {
 
+                from: new Float32Array( fromArray ),
+                to: new Float32Array( toArray )
+                // TODO: Are atomindex/index meaningful here?
+                
+            };
+
+        } else {
+
+            positionArray.length = count * 3;
+            if( !noNormals ) normalArray.length = count * 3;
+            indexArray.length = icount;
+            if( atomindex ) atomindexArray.length = count;
+
+            var TypedArray = positionArray.length / 3 > 65535 ? Uint32Array : Uint16Array;
+            return {
+                position: new Float32Array( positionArray ),
+                normal: noNormals ? undefined : new Float32Array( normalArray ),
+                index: new TypedArray( indexArray ),
+                atomindex: atomindex ? new Int32Array( atomindexArray ) : undefined
+            };
+        }
     };
 
     // polygonization
@@ -516,6 +551,71 @@ function MarchingCubes( field, nx, ny, nz, atomindex ){
         }
 
     }
+    /*
+    function contourFaces( fx, fy, fz, q ) {
+
+        // cf polygonize function. Iterate over faces adding to fromArray/toArray
+        // TODO: Refactor to share code...
+        var q1 = q + 1,
+            qy = q + yd,
+            qz = q + zd,
+            q1y = q1 + yd,
+            q1z = q1 + zd,
+            qyz = q + yd + zd,
+            q1yz = q1 + yd + zd;
+
+        var cubeindex = 0,
+            field0 = field[ q ],
+            field1 = field[ q1 ],
+            field2 = field[ qy ],
+            field3 = field[ q1y ],
+            field4 = field[ qz ],
+            field5 = field[ q1z ],
+            field6 = field[ qyz ],
+            field7 = field[ q1yz ];
+
+        if ( field0 < isolevel ) cubeindex |= 1;
+        if ( field1 < isolevel ) cubeindex |= 2;
+        if ( field2 < isolevel ) cubeindex |= 8;
+        if ( field3 < isolevel ) cubeindex |= 4;
+        if ( field4 < isolevel ) cubeindex |= 16;
+        if ( field5 < isolevel ) cubeindex |= 32;
+        if ( field6 < isolevel ) cubeindex |= 128;
+        if ( field7 < isolevel ) cubeindex |= 64;
+
+        // if cube is entirely in/out of the surface - bail, nothing to draw
+
+        var bits = edgeTable[ cubeindex ];
+        if ( bits === 0 ) return;
+
+        // We have 3 trailing faces that always need contouring
+        // Face 0132 
+        if ( ( cubeindex & 15 ) && ( ( cubeindex & 15) != 15 ) ) {
+            // contourFace needs to know: 
+            //   The index of this cube (q)
+            //   
+            //   The field values at those vertices,
+            //   
+            contourFace( cubeindex, q, q1, q1y, qy, field0, field1, field3, field2  );
+        }
+        // Face 0154
+        if ( ( cubeindex & 51 ) && ( ( cubeindex & 51) != 51 ) ) {
+
+        }
+
+        // Face 0264
+        if ( ( cubeindex & 153 ) && ( ( cubeindex & 153 != 153 ) ) {
+
+        }
+
+    }
+
+    function contourFace( cubeindex, v0, v1, v2, v3, f1, f2, f3, f4 ) {
+
+        var faceIndex = 0;
+        if ( cubeindex & 10);
+
+    }*/
 
     function polygonize( fx, fy, fz, q ) {
 
@@ -684,24 +784,54 @@ function MarchingCubes( field, nx, ny, nz, atomindex ){
 
         cubeindex <<= 4;  // re-purpose cubeindex into an offset into triTable
 
-        var o1, o2, o3, i = 0;
+        var i = 0;
+
+        if ( contour ) {
+
+            var e1, e2;
+            // Rather than creating triangles, we add the lines, but omit
+            // those that do not lie within the face of a cube.
+            while ( triTable[ cubeindex + i + 1 ] != -1 ) {
+
+                e1 = triTable[ cubeindex + i ];
+                e2 = triTable[ cubeindex + i + 1 ];
+
+                if (allowedContours[ e1 ][ e2 ]) {
+                    var pOffset = 3 * ilist[ e1 ];
+                    fromArray[ icount ] = positionArray[ pOffset ];
+                    fromArray[ icount + 1 ] = positionArray[ pOffset + 1 ];
+                    fromArray[ icount + 2 ] = positionArray[ pOffset + 2 ];
+                    pOffset = 3 * ilist[ e2 ] ;
+                    toArray[ icount ] = positionArray[ pOffset ];
+                    toArray[ icount + 1 ] = positionArray[ pOffset + 1 ];
+                    toArray[ icount + 2 ] = positionArray[ pOffset + 2 ];
+                    icount += 3;
+                }
+
+                i += 1;
+
+            }
+            
+            
+        }
 
         // here is where triangles are created
+        else {
+            var o1, o2, o3;
+            while ( triTable[ cubeindex + i ] != -1 ) {
+                
+                o1 = cubeindex + i;
+                o2 = o1 + 1;
+                o3 = o1 + 2;
 
-        while ( triTable[ cubeindex + i ] != -1 ) {
-
-            o1 = cubeindex + i;
-            o2 = o1 + 1;
-            o3 = o1 + 2;
-
-            // FIXME normals flipping (see above) and vertex order reversal
-            indexArray[ icount ]     = ilist[ triTable[ o2 ] ];
-            indexArray[ icount + 1 ] = ilist[ triTable[ o1 ] ];
-            indexArray[ icount + 2 ] = ilist[ triTable[ o3 ] ];
-
-            icount += 3;
-            i += 3;
-
+                // FIXME normals flipping (see above) and vertex order reversal
+                indexArray[ icount ]     = ilist[ triTable[ o2 ] ];
+                indexArray[ icount + 1 ] = ilist[ triTable[ o1 ] ];
+                indexArray[ icount + 2 ] = ilist[ triTable[ o3 ] ];
+                
+                icount += 3;
+                i += 3;
+            }
         }
 
     }
@@ -904,7 +1034,7 @@ function MarchingCubes( field, nx, ny, nz, atomindex ){
     }
 
 }
-MarchingCubes.__deps = [ getEdgeTable, getTriTable ];
+MarchingCubes.__deps = [ getEdgeTable, getTriTable, getAllowedContours ];
 
 
 export default MarchingCubes;

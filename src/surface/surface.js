@@ -49,7 +49,9 @@ function Surface( name, path, data ){
             data.index,
             data.normal,
             data.color,
-            data.atomindex
+            data.atomindex,
+            data.from,
+            data.to
         );
 
     }
@@ -69,15 +71,18 @@ Surface.prototype = {
      * @param {Float32Array} color - surface colors
      * @param {Int32Array} atomindex - atom indices
      */
-    set: function( position, index, normal, color, atomindex ){
+    set: function( position, index, normal, color, atomindex, from, to ){
 
         this.position = position;
         this.index = index;
         this.normal = normal;
         this.color = color;
         this.atomindex = atomindex;
+        this.from = from;
+        this.to = to
 
-        this.size = position.length / 3;
+        this.size = position && position.length / 3;
+        this.size = this.size || this.from.length / 3;
 
     },
 

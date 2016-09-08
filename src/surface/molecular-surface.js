@@ -19,7 +19,7 @@ WorkerRegistry.add( "molsurf", function func( e, callback ){
 
         var edtsurf = new EDTSurface( a.coordList, a.radiusList, a.indexList );
         var sd = edtsurf.getSurface(
-            p.type, p.probeRadius, p.scaleFactor, p.cutoff, true, p.smooth
+            p.type, p.probeRadius, p.scaleFactor, p.cutoff, true, p.smooth, p.contour
         );
         var transferList = [ sd.position.buffer, sd.index.buffer ];
         if( sd.normal ) transferList.push( sd.normal.buffer );
@@ -60,6 +60,7 @@ MolecularSurface.prototype = {
         surface.info.scaleFactor = p.scaleFactor;
         surface.info.smooth = p.smooth;
         surface.info.cutoff = p.cutoff;
+        // TODO contour 
 
         return surface;
 
@@ -76,7 +77,7 @@ MolecularSurface.prototype = {
 
         var edtsurf = new EDTSurface( coordList, radiusList, indexList );
         var sd = edtsurf.getSurface(
-            p.type, p.probeRadius, p.scaleFactor, p.cutoff, true, p.smooth
+            p.type, p.probeRadius, p.scaleFactor, p.cutoff, true, p.smooth, p.contour
         );
 
         return this.makeSurface( sd, p );
