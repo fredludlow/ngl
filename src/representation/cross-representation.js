@@ -16,7 +16,7 @@ class CrossRepresentation extends StructureRepresentation {
         type: 'number',
         precision: 2,
         max: 1.0,
-        min: 0.2,
+        min: 0.05,
         rebuild: true
       }
     }, this.parameters, {
@@ -34,7 +34,7 @@ class CrossRepresentation extends StructureRepresentation {
   init (params) {
     const p = params || {}
 
-    this.crossSize = defaults(p.crossSize, 0.8)
+    this.crossSize = defaults(p.crossSize, 0.2)
     super.init(p)
   }
 

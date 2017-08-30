@@ -27,7 +27,7 @@ class CrossBuffer extends Buffer {
       color: new Float32Array(attrSize * 3)
     }, p)
 
-    this.crossSize = defaults(p.crossSize, 0.8)
+    this.crossSize = defaults(p.crossSize, 0.2)
 
     this.setAttributes(data)
   }
