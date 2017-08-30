@@ -3,6 +3,8 @@ import Buffer from './buffer.js'
 import '../shader/Line.vert'
 import '../shader/Line.frag'
 
+import { defaults } from '../utils.js'
+
 class CrossBuffer extends Buffer {
   /**
    * Cross buffer. Draws a cross at each provided point.
@@ -14,6 +16,8 @@ class CrossBuffer extends Buffer {
    * @param {BufferParameters} params - parameter object
    */
   constructor (data, params) {
+    const p = params || {}
+
     var size = data.position.length / 3
     // Each atom requires 6 vertices
     var attrSize = 6 * size
@@ -21,7 +25,9 @@ class CrossBuffer extends Buffer {
     super({
       position: new Float32Array(attrSize * 3),
       color: new Float32Array(attrSize * 3)
-    }, params)
+    }, p)
+
+    this.crossSize = defaults(p.crossSize, 0.8)
 
     this.setAttributes(data)
   }
@@ -45,17 +51,18 @@ class CrossBuffer extends Buffer {
       attributes.color.needsUpdate = true
     }
 
-    const cSize = data.crossSize
+    const cSize = this.crossSize
     const n = this.size // buffer takes from data.position
 
     for (let v = 0; v < n; v++) {
       const j = v * 3
       const i = v * 6 * 3
-      const x = position[j]
-      const y = position[j + 1]
-      const z = position[j + 2]
 
       if (data.position) {
+        const x = position[j]
+        const y = position[j + 1]
+        const z = position[j + 2]
+
         aPosition[ i ] = x - cSize
         aPosition[ i + 1 ] = y
         aPosition[ i + 2 ] = z
@@ -63,19 +70,19 @@ class CrossBuffer extends Buffer {
         aPosition[ i + 4 ] = y
         aPosition[ i + 5 ] = z
 
-        aPosition[ i + 7 ] = x
-        aPosition[ i + 8 ] = y - cSize
-        aPosition[ i + 9 ] = z
-        aPosition[ i + 10 ] = x
-        aPosition[ i + 11 ] = y + cSize
-        aPosition[ i + 12 ] = z
+        aPosition[ i + 6 ] = x
+        aPosition[ i + 7 ] = y - cSize
+        aPosition[ i + 8 ] = z
+        aPosition[ i + 9 ] = x
+        aPosition[ i + 10 ] = y + cSize
+        aPosition[ i + 11 ] = z
 
-        aPosition[ i + 13 ] = x
-        aPosition[ i + 14 ] = y
-        aPosition[ i + 15 ] = z - cSize
-        aPosition[ i + 16 ] = x
-        aPosition[ i + 17 ] = y
-        aPosition[ i + 18 ] = z + cSize
+        aPosition[ i + 12 ] = x
+        aPosition[ i + 13 ] = y
+        aPosition[ i + 14 ] = z - cSize
+        aPosition[ i + 15 ] = x
+        aPosition[ i + 16 ] = y
+        aPosition[ i + 17 ] = z + cSize
       }
       if (data.color) {
         const cimax = i + 18

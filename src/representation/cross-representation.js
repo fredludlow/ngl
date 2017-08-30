@@ -1,6 +1,7 @@
 import {defaults} from '../utils.js'
 import { RepresentationRegistry } from '../globals.js'
 import StructureRepresentation from './structure-representation.js'
+import CrossBuffer from '../buffer/cross-buffer.js'
 
 /**
  * Cross representation
@@ -16,10 +17,6 @@ class CrossRepresentation extends StructureRepresentation {
         precision: 2,
         max: 1.0,
         min: 0.2,
-        rebuild: true
-      },
-      nonBondedOnly: {
-        type: 'boolean',
         rebuild: true
       }
     }, this.parameters, {
@@ -38,21 +35,37 @@ class CrossRepresentation extends StructureRepresentation {
     const p = params || {}
 
     this.crossSize = defaults(p.crossSize, 0.8)
-    this.nonBondedOnly = defaults(p.nonBondedOnly, false)
     super.init(p)
   }
 
   createData (sview) {
-    var what = { position: true, color: true }
-    var atomData = sview.getAtomData(this.getAtomParams(what))
+    const what = { position: true, color: true }
+    const atomData = sview.getAtomData(this.getAtomParams(what))
 
-    var crossBuffer = new CrossBuffer(
-        atomData, this.getBufferParams()
-      )
+    const crossBuffer = new CrossBuffer(
+        atomData, this.getBufferParams({
+          crossSize: this.crossSize
+        })
+    )
+
+    return {
+      bufferList: [ crossBuffer ]
+    }
   }
 
   updateData (what, data) {
+    const atomData = data.sview.getAtomData(this.getAtomParams(what))
+    const crossData = {}
 
+    if (!what || what.position) {
+      crossData.position = atomData.position
+    }
+
+    if (!what || what.color) {
+      crossData.color = atomData.color
+    }
+
+    data.bufferList[ 0 ].setAttributes(crossData)
   }
 
   setParameters (params) {
