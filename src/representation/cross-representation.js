@@ -126,4 +126,7 @@ class CrossRepresentation extends StructureRepresentation {
 
 RepresentationRegistry.add('cross', CrossRepresentation)
 
-export default CrossRepresentation
+export {
+  getIsolatedAtomSet,
+  CrossRepresentation as default
+}
