@@ -597,6 +597,11 @@ function processConnections (cif: Cif, structure: Structure, asymIdDict: {[k: st
     var ap2 = structure.getAtomProxy()
     var atomIndicesCache: {[k: string]: Uint32Array|undefined} = {}
 
+    const hasInscode1 = sc.pdbx_ptnr1_PDB_ins_code !== undefined
+    const hasAltloc1 = sc.pdbx_ptnr1_label_alt_id !== undefined
+    const hasInscode2 = sc.pdbx_ptnr2_PDB_ins_code !== undefined
+    const hasAltloc2= sc.pdbx_ptnr2_label_alt_id !== undefined
+
     for (var i = 0, il = sc.id.length; i < il; ++i) {
       // ignore:
       // hydrog - hydrogen bond
@@ -609,8 +614,9 @@ function processConnections (cif: Cif, structure: Structure, asymIdDict: {[k: st
           connTypeId === 'saltbr') continue
 
       // ignore bonds between symmetry mates
-      if (sc.ptnr1_symmetry[ i ] !== '1_555' ||
-          sc.ptnr2_symmetry[ i ] !== '1_555') continue
+      if (sc.ptnr1_symmetry &&
+          (sc.ptnr1_symmetry[ i ] !== '1_555' ||
+           sc.ptnr2_symmetry[ i ] !== '1_555')) continue
 
       // process:
       // covale - covalent bond
@@ -624,8 +630,8 @@ function processConnections (cif: Cif, structure: Structure, asymIdDict: {[k: st
       // metalc - metal coordination
       // modres - covalent residue modification
 
-      var inscode1 = sc.pdbx_ptnr1_PDB_ins_code[ i ]
-      var altloc1 = sc.pdbx_ptnr1_label_alt_id[ i ]
+      var inscode1 = hasInscode1 ? sc.pdbx_ptnr1_PDB_ins_code[ i ] : '?'
+      var altloc1 = hasAltloc1 ? sc.pdbx_ptnr1_label_alt_id[ i ] : '?'
       var sele1 = (
         sc.ptnr1_auth_seq_id[ i ] +
         (hasValue(inscode1) ? ('^' + inscode1) : '') +
@@ -644,8 +650,8 @@ function processConnections (cif: Cif, structure: Structure, asymIdDict: {[k: st
         atomIndicesCache[ sele1 ] = atomIndices1
       }
 
-      var inscode2 = sc.pdbx_ptnr2_PDB_ins_code[ i ]
-      var altloc2 = sc.pdbx_ptnr2_label_alt_id[ i ]
+      var inscode2 = hasInscode2 ? sc.pdbx_ptnr2_PDB_ins_code[ i ] : '?'
+      var altloc2 = hasAltloc2 ? sc.pdbx_ptnr2_label_alt_id[ i ] : '?'
       var sele2 = (
         sc.ptnr2_auth_seq_id[ i ] +
         (hasValue(inscode2) ? ('^' + inscode2) : '') +
@@ -980,7 +986,8 @@ class CifParser extends StructureParser {
               const resno = parseInt(ls[ authSeqId ])
               let inscode = ls[ pdbxPDBinsCode ]
               inscode = (inscode === '?') ? '' : inscode
-              const chainname = ls[ authAsymId ]
+              let chainname = ls[ authAsymId ]
+              chainname = (chainname === undefined) ? '' : chainname
               const chainid = ls[ labelAsymId ]
               const hetero = (ls[ groupPDB ][ 0 ] === 'H') ? 1 : 0
 
@@ -990,7 +997,7 @@ class CifParser extends StructureParser {
               const bfactor = parseFloat(ls[ bIsoOrEquiv ])
               const occ = parseFloat(ls[ occupancy ])
               let altloc = ls[ labelAltId ]
-              altloc = (altloc === '.') ? '' : altloc
+              altloc = (altloc === '.' || altloc === undefined) ? '' : altloc
 
               atomStore.growIfFull()
               atomStore.atomTypeId[ idx ] = atomMap.add(atomname, element)
