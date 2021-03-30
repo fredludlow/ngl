@@ -408,12 +408,18 @@ function parseSele (string: string) {
     }
 
     const chain = atomname[0].split(':')
-    if (chain.length > 1 && chain[1]) {
-      sele.rules!.push({
-        chainname: chain[1]
-      })
+    if (chain.length > 1) {
+      if (chain[1]) {
+        sele.rules!.push({
+          chainname: chain[1]
+        })
+      } else { 
+        sele.rules!.push({
+          chainname: ""
+        })
+      }
     }
-
+    
     const inscode = chain[0].split('^')
     if (inscode.length > 1) {
       sele.rules!.push({
