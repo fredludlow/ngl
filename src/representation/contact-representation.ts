@@ -7,7 +7,7 @@
 import { defaults } from '../utils'
 import { RepresentationRegistry } from '../globals'
 import StructureRepresentation, { StructureRepresentationParameters } from './structure-representation'
-import { calculateContacts, getContactData, getLabelData } from '../chemistry/interactions/contact'
+import { calculateContacts, getContactData, getLabelData, ContactColorDefaultParams } from '../chemistry/interactions/contact'
 import CylinderBuffer from '../buffer/cylinder-buffer'
 import TextBuffer from '../buffer/text-buffer'
 import { getFixedCountDashData } from '../geometry/dash'
@@ -21,15 +21,25 @@ import { ContactPicker } from '../utils/picker';
 
 export interface ContactRepresentationParameters extends StructureRepresentationParameters {
   hydrogenBond: boolean
+  hydrogenBondColor: string
   weakHydrogenBond: boolean
+  weakHydrogenBondColor: string
   waterHydrogenBond: boolean
+  waterHydrogenBondColor: string
   backboneHydrogenBond: boolean
+  backboneHydrogenBondColor: string
   hydrophobic: boolean
+  hydrophobicColor: string
   halogenBond: boolean
+  halogenBondColor: string
   ionicInteraction: boolean
+  ionicInteractionColor: string
   metalCoordination: boolean
+  metalCoordinationColor: string
   cationPi: boolean
+  cationPiColor: string
   piStacking: boolean
+  piStackingColor: string
   filterSele: string|[string, string]
   maxHydrophobicDist: number
   maxHbondDist: number
@@ -57,15 +67,26 @@ export interface ContactRepresentationParameters extends StructureRepresentation
  */
 class ContactRepresentation extends StructureRepresentation {
   protected hydrogenBond: boolean
+  protected hydrogenBondColor: string
   protected weakHydrogenBond: boolean
+  protected weakHydrogenBondColor: string
   protected waterHydrogenBond: boolean
+  protected waterHydrogenBondColor: string
   protected backboneHydrogenBond: boolean
+  protected backboneHydrogenBondColor: string
   protected hydrophobic: boolean
+  protected hydrophobicColor: string
   protected halogenBond: boolean
+  protected halogenBondColor: string
   protected ionicInteraction: boolean
+  protected ionicInteractionColor: string
   protected metalCoordination: boolean
+  protected metalCoordinationColor: string
   protected cationPi: boolean
+  protected cationPiColor: string
   protected piStacking: boolean
+  protected piStackingColor: string
+
   protected filterSele: string|[string, string]
   protected maxHydrophobicDist: number
   protected maxHbondDist: number
@@ -96,34 +117,63 @@ class ContactRepresentation extends StructureRepresentation {
       hydrogenBond: {
         type: 'boolean', rebuild: true
       },
+      hydrogenBondColor: {
+        type: 'color', rebuild: true
+      },
       weakHydrogenBond: {
         type: 'boolean', rebuild: true
+      },
+      weakHydrogenBondColor: {
+        type: 'color', rebuild: true
       },
       waterHydrogenBond: {
         type: 'boolean', rebuild: true
       },
+      waterHydrogenBondColor: {
+        type: 'color', rebuild: true
+      },
       backboneHydrogenBond: {
         type: 'boolean', rebuild: true
+      },
+      backboneHydrogenBondColor: {
+        type: 'color', rebuild: true
       },
       hydrophobic: {
         type: 'boolean', rebuild: true
       },
+      hydrophobicColor: {
+        type: 'color', rebuild: true
+      },
       halogenBond: {
         type: 'boolean', rebuild: true
+      },
+      halogenBondColor: {
+        type: 'color', rebuild: true
       },
       ionicInteraction: {
         type: 'boolean', rebuild: true
       },
+      ionicInteractionColor: {
+        type: 'color', rebuild: true
+      },
       metalCoordination: {
         type: 'boolean', rebuild: true
+      },
+      metalCoordinationColor: {
+        type: 'color', rebuild: true
       },
       cationPi: {
         type: 'boolean', rebuild: true
       },
+      cationPiColor: {
+        type: 'color', rebuild: true
+      },
       piStacking: {
         type: 'boolean', rebuild: true
       },
-
+      piStackingColor: {
+        type: 'color', rebuild: true
+      },
       filterSele: {
         type: 'text', rebuild: true
       },
@@ -217,15 +267,25 @@ class ContactRepresentation extends StructureRepresentation {
     p.useInteriorColor = defaults(p.useInteriorColor, true)
 
     this.hydrogenBond = defaults(p.hydrogenBond, true)
+    this.hydrogenBondColor = defaults(p.hydrogenBondColor, ContactColorDefaultParams.hydrogenBondColor)
     this.weakHydrogenBond = defaults(p.weakHydrogenBond, false)
+    this.weakHydrogenBondColor = defaults(p.weakHydrogenBondColor, ContactColorDefaultParams.weakHydrogenBondColor)
     this.waterHydrogenBond = defaults(p.waterHydrogenBond, false)
+    this.waterHydrogenBondColor = defaults(p.waterHydrogenBondColor, ContactColorDefaultParams.waterHydrogenBondColor)
     this.backboneHydrogenBond = defaults(p.backboneHydrogenBond, false)
+    this.backboneHydrogenBondColor = defaults(p.backboneHydrogenBondColor, ContactColorDefaultParams.backboneHydrogenBondColor)
     this.hydrophobic = defaults(p.hydrophobic, false)
+    this.hydrophobicColor = defaults(p.hydrophobicColor, ContactColorDefaultParams.hydrophobicColor)
     this.halogenBond = defaults(p.halogenBond, true)
+    this.halogenBondColor = defaults(p.halogenBondColor, ContactColorDefaultParams.halogenBondColor)
     this.ionicInteraction = defaults(p.ionicInteraction, true)
+    this.ionicInteractionColor = defaults(p.ionicInteractionColor, ContactColorDefaultParams.ionicInteractionColor)
     this.metalCoordination = defaults(p.metalCoordination, true)
+    this.metalCoordinationColor = defaults(p.metalCoordinationColor, ContactColorDefaultParams.metalCoordinationColor)
     this.cationPi = defaults(p.cationPi, true)
+    this.cationPiColor = defaults(p.cationPiColor, ContactColorDefaultParams.cationPiColor)
     this.piStacking = defaults(p.piStacking, true)
+    this.piStackingColor = defaults(p.piStackingColor, ContactColorDefaultParams.piStackingColor)
 
     this.filterSele = defaults(p.filterSele, '')
     this.labelVisible = defaults(p.labelVisible, false)
@@ -285,15 +345,25 @@ class ContactRepresentation extends StructureRepresentation {
 
     const dataParams = {
       hydrogenBond: this.hydrogenBond,
+      hydrogenBondColor: this.hydrogenBondColor,
       weakHydrogenBond: this.weakHydrogenBond,
+      weakHydrogenBondColor: this.weakHydrogenBond,
       waterHydrogenBond: this.waterHydrogenBond,
+      waterHydrogenBondColor: this.waterHydrogenBondColor,
       backboneHydrogenBond: this.backboneHydrogenBond,
+      backboneHydrogenBondColor: this.backboneHydrogenBondColor,
       hydrophobic: this.hydrophobic,
+      hydrophobicColor: this.hydrophobicColor,
       halogenBond: this.halogenBond,
+      halogenBondColor: this.halogenBondColor,
       ionicInteraction: this.ionicInteraction,
+      ionicInteractionColor: this.ionicInteractionColor,
       metalCoordination: this.metalCoordination,
+      metalCoordinationColor: this.metalCoordinationColor,
       cationPi: this.cationPi,
+      cationPiColor: this.cationPiColor,
       piStacking: this.piStacking,
+      piStackingColor: this.piStackingColor,
       radius: this.radiusSize * this.radiusScale,
       filterSele: this.filterSele
     }

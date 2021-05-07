@@ -191,7 +191,22 @@ export function contactTypeName (type: ContactType) {
   }
 }
 
-export const ContactDataDefaultParams = {
+export const ContactColorDefaultParams = {
+  hydrogenBondColor: '#95C1DC',
+  weakHydrogenBondColor: '#C5DDEC',
+  waterHydrogenBondColor: '#95C1DC',
+  backboneHydrogenBondColor: '#95C1DC',
+  hydrophobicColor: '#808080',
+  halogenBondColor: '#40FFBF',
+  ionicInteractionColor: '#F0C814',
+  metalCoordinationColor: '#8C4099',
+  cationPiColor: '#FF8000',
+  piStackingColor: '#8CB366',
+}
+
+type ContactColorParams = typeof ContactColorDefaultParams
+
+export const ContactDataDefaultParams = Object.assign({
   hydrogenBond: true,
   hydrophobic: true,
   halogenBond: true,
@@ -204,7 +219,8 @@ export const ContactDataDefaultParams = {
   backboneHydrogenBond: true,
   radius: 1,
   filterSele: ''
-}
+}, ContactColorDefaultParams)
+
 export type ContactDataParams = typeof ContactDataDefaultParams
   | { filterSele: string|[string, string] }
 
@@ -216,28 +232,52 @@ export const ContactLabelDefaultParams = {
 export type ContactLabelParams = typeof ContactLabelDefaultParams
 
 const tmpColor = new Color()
-function contactColor (type: ContactType) {
-  switch (type) {
-    case ContactType.HydrogenBond:
-    case ContactType.WaterHydrogenBond:
-    case ContactType.BackboneHydrogenBond:
-      return tmpColor.setHex(0x2B83BA).toArray()
-    case ContactType.Hydrophobic:
-      return tmpColor.setHex(0x808080).toArray()
-    case ContactType.HalogenBond:
-      return tmpColor.setHex(0x40FFBF).toArray()
-    case ContactType.IonicInteraction:
-      return tmpColor.setHex(0xF0C814).toArray()
-    case ContactType.MetalCoordination:
-      return tmpColor.setHex(0x8C4099).toArray()
-    case ContactType.CationPi:
-      return tmpColor.setHex(0xFF8000).toArray()
-    case ContactType.PiStacking:
-      return tmpColor.setHex(0x8CB366).toArray()
-    case ContactType.WeakHydrogenBond:
-      return tmpColor.setHex(0xC5DDEC).toArray()
-    default:
-      return tmpColor.setHex(0xCCCCCC).toArray()
+
+class ContactColorMaker {
+  
+  contactColor: (type: ContactType) => number[]
+
+  constructor(params: ContactColorParams) {
+    // const p = createParams(params, ContactColorDefaultParams)
+    const p = params
+    const hydrogenBondColor = tmpColor.set(p.hydrogenBondColor).toArray()
+    const weakHydrogenBondColor = tmpColor.set(p.weakHydrogenBondColor).toArray()
+    const waterHydrogenBondColor = tmpColor.set(p.waterHydrogenBondColor).toArray()
+    const backboneHydrogenBondColor = tmpColor.set(p.backboneHydrogenBondColor).toArray()
+    const hydrophobicColor = tmpColor.set(p.hydrophobicColor).toArray()
+    const halogenBondColor = tmpColor.set(p.halogenBondColor).toArray()
+    const ionicInteractionColor = tmpColor.set(p.ionicInteractionColor).toArray()
+    const metalCoordinationColor = tmpColor.set(p.metalCoordinationColor).toArray()
+    const cationPiColor = tmpColor.set(p.cationPiColor).toArray()
+    const piStackingColor = tmpColor.set(p.piStackingColor).toArray()
+    const defaultColor = tmpColor.set(0xCCCCCC).toArray()
+
+    this.contactColor = function(type: ContactType) {
+      switch(type) {
+        case ContactType.HydrogenBond:
+          return hydrogenBondColor
+        case ContactType.WaterHydrogenBond:
+          return waterHydrogenBondColor
+        case ContactType.BackboneHydrogenBond:
+          return backboneHydrogenBondColor
+        case ContactType.Hydrophobic:
+          return hydrophobicColor
+        case ContactType.HalogenBond:
+          return halogenBondColor
+        case ContactType.IonicInteraction:
+          return ionicInteractionColor
+        case ContactType.MetalCoordination:
+          return metalCoordinationColor
+        case ContactType.CationPi:
+          return cationPiColor
+        case ContactType.PiStacking:
+          return piStackingColor
+        case ContactType.WeakHydrogenBond:
+          return weakHydrogenBondColor
+        default:
+          return defaultColor
+      }
+    }
   }
 }
 
@@ -252,6 +292,7 @@ export interface ContactData {
 
 export function getContactData (contacts: FrozenContacts, structure: Structure, params: ContactDataParams): ContactData {
   const p = createParams(params, ContactDataDefaultParams)
+  const contactColor = new ContactColorMaker(p).contactColor
   const types: ContactType[] = []
   if (p.hydrogenBond) types.push(ContactType.HydrogenBond)
   if (p.hydrophobic) types.push(ContactType.Hydrophobic)

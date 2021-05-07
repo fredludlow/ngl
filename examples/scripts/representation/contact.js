@@ -56,7 +56,7 @@ stage.signals.hovered.add(function (pickingProxy) {
   }
 })
 
-stage.loadFile('rcsb://1crn').then(function (o) {
+stage.loadFile('data://1CRN.cif').then(function (o) {
   o.addRepresentation('cartoon', {
     colorScheme: 'sstruc'
   })
