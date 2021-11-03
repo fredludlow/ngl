@@ -151,6 +151,7 @@ import './parser/cube-parser'
 import './parser/dsn6-parser'
 import './parser/dx-parser'
 import './parser/dxbin-parser'
+import './parser/grd-parser'
 import './parser/mrc-parser'
 import './parser/xplor-parser'
 
