@@ -16,6 +16,10 @@ export interface VolumeParserParameters extends ParserParameters {
 }
 
 class VolumeParser extends Parser {
+
+  volume: Volume
+  voxelSize: number
+
   constructor (streamer: Streamer, params?: Partial<VolumeParserParameters>) {
     const p = params || {}
 
